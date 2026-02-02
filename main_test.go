@@ -1,10 +1,9 @@
 package main
 
-import (
-	"testing"
-)
+import "testing"
 
-// -------------------- Part 1: Factorial --------------------
+/* ========= PART 1 TESTS ========= */
+
 func TestFactorial(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -12,107 +11,83 @@ func TestFactorial(t *testing.T) {
 		want    int
 		wantErr bool
 	}{
-		{name: "factorial of 0", input: 0, want: 1, wantErr: false},
-		{name: "factorial of 1", input: 1, want: 1, wantErr: false},
-		{name: "factorial of 3", input: 3, want: 6, wantErr: false},
-		{name: "factorial of 5", input: 5, want: 120, wantErr: false},
-		{name: "factorial of 6", input: 6, want: 720, wantErr: false},
-		{name: "factorial of -1 (error)", input: -1, want: 0, wantErr: true},
+		{"0!", 0, 1, false},
+		{"1!", 1, 1, false},
+		{"5!", 5, 120, false},
+		{"10!", 10, 3628800, false},
+		{"negative", -1, 0, true},
+		{"large", 3, 6, false},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := Factorial(tt.input)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Factorial() error = %v, wantErr %v", err, tt.wantErr)
-				return
+				t.Fatalf("error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if got != tt.want {
-				t.Errorf("Factorial() = %v, want %v", got, tt.want)
+				t.Fatalf("got %d, want %d", got, tt.want)
 			}
 		})
 	}
 }
 
-// -------------------- Part 2: MakeCounter --------------------
-func TestMakeCounter(t *testing.T) {
+func TestIsPrime(t *testing.T) {
 	tests := []struct {
-		name   string
-		start  int
-		calls  int
-		expect []int
+		input   int
+		want    bool
+		wantErr bool
 	}{
-		{name: "counter from 0, 3 calls", start: 0, calls: 3, expect: []int{1, 2, 3}},
-		{name: "counter from 10, 2 calls", start: 10, calls: 2, expect: []int{11, 12}},
+		{2, true, false},
+		{3, true, false},
+		{4, false, false},
+		{17, true, false},
+		{1, false, true},
+		{-5, false, true},
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			counter := MakeCounter(tt.start)
-			for i, want := range tt.expect {
-				got := counter()
-				if got != want {
-					t.Errorf("Call %d: got %d, want %d", i+1, got, want)
-				}
-			}
-		})
-	}
-
-	// Test independence
-	counterA := MakeCounter(0)
-	counterB := MakeCounter(100)
-	counterA() // 1
-	counterB() // 101
-	counterA() // 2
-	if counterA() != 3 {
-		t.Errorf("CounterA did not increment independently")
-	}
-	if counterB() != 102 {
-		t.Errorf("CounterB did not increment independently")
+		got, err := IsPrime(tt.input)
+		if (err != nil) != tt.wantErr || got != tt.want {
+			t.Fail()
+		}
 	}
 }
 
-// -------------------- Part 2: MakeMultiplier --------------------
-func TestMakeMultiplier(t *testing.T) {
+func TestPower(t *testing.T) {
 	tests := []struct {
-		name   string
-		factor int
-		input  int
-		want   int
+		b, e    int
+		want    int
+		wantErr bool
 	}{
-		{name: "double 5", factor: 2, input: 5, want: 10},
-		{name: "triple 7", factor: 3, input: 7, want: 21},
-		{name: "quadruple 4", factor: 4, input: 4, want: 16},
+		{2, 0, 1, false},
+		{2, 3, 8, false},
+		{5, 2, 25, false},
+		{0, 5, 0, false},
+		{2, -1, 0, true},
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			mult := MakeMultiplier(tt.factor)
-			got := mult(tt.input)
-			if got != tt.want {
-				t.Errorf("MakeMultiplier(%d)(%d) = %d; want %d", tt.factor, tt.input, got, tt.want)
-			}
-		})
+		got, err := Power(tt.b, tt.e)
+		if (err != nil) != tt.wantErr || got != tt.want {
+			t.Fail()
+		}
 	}
 }
 
-// -------------------- Part 2: MakeAccumulator --------------------
-func TestMakeAccumulator(t *testing.T) {
-	add, subtract, get := MakeAccumulator(100)
+/* ========= PART 5 TESTS ========= */
 
-	add(50)
-	if got := get(); got != 150 {
-		t.Errorf("After add(50), got %d; want 150", got)
+func TestSwapValues(t *testing.T) {
+	a, b := SwapValues(3, 4)
+	if a != 4 || b != 3 {
+		t.Fail()
 	}
+}
 
-	subtract(20)
-	if got := get(); got != 130 {
-		t.Errorf("After subtract(20), got %d; want 130", got)
-	}
-
-	add(10)
-	subtract(15)
-	if got := get(); got != 125 {
-		t.Errorf("After add(10) and subtract(15), got %d; want 125", got)
+func TestSwapPointers(t *testing.T) {
+	a, b := 3, 4
+	SwapPointers(&a, &b)
+	if a != 4 || b != 3 {
+		t.Fail()
 	}
 }

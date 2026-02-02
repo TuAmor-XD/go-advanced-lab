@@ -3,22 +3,25 @@ package main
 import (
 	"errors"
 	"fmt"
+	"math"
+	"os"
 )
 
-// -------------------- Part 1 --------------------
-// Factorial function
+/* =======================
+   PART 1: MATH FUNCTIONS
+   ======================= */
+
 func Factorial(n int) (int, error) {
 	if n < 0 {
 		return 0, errors.New("factorial is not defined for negative numbers")
 	}
 	result := 1
-	for i := 2; i <= n; i++ {
+	for i := 1; i <= n; i++ {
 		result *= i
 	}
 	return result, nil
 }
 
-// Prime check
 func IsPrime(n int) (bool, error) {
 	if n < 2 {
 		return false, errors.New("prime check requires number >= 2")
@@ -29,7 +32,8 @@ func IsPrime(n int) (bool, error) {
 	if n%2 == 0 {
 		return false, nil
 	}
-	for i := 3; i*i <= n; i += 2 {
+	limit := int(math.Sqrt(float64(n)))
+	for i := 3; i <= limit; i += 2 {
 		if n%i == 0 {
 			return false, nil
 		}
@@ -37,7 +41,6 @@ func IsPrime(n int) (bool, error) {
 	return true, nil
 }
 
-// Power function
 func Power(base, exponent int) (int, error) {
 	if exponent < 0 {
 		return 0, errors.New("negative exponents not supported")
@@ -49,75 +52,172 @@ func Power(base, exponent int) (int, error) {
 	return result, nil
 }
 
-// -------------------- Part 2 --------------------
-// MakeCounter
+/* =======================
+   PART 2: CLOSURES
+   ======================= */
+
 func MakeCounter(start int) func() int {
-	counter := start
+	count := start
 	return func() int {
-		counter++
-		return counter
+		count++
+		return count
 	}
 }
 
-// MakeMultiplier
 func MakeMultiplier(factor int) func(int) int {
 	return func(x int) int {
 		return x * factor
 	}
 }
 
-// MakeAccumulator
-func MakeAccumulator(initial int) (add func(int), subtract func(int), get func() int) {
+func MakeAccumulator(initial int) (func(int), func(int), func() int) {
 	value := initial
-	add = func(x int) { value += x }
-	subtract = func(x int) { value -= x }
-	get = func() int { return value }
-	return
+	add := func(x int) {
+		value += x
+	}
+	sub := func(x int) {
+		value -= x
+	}
+	get := func() int {
+		return value
+	}
+	return add, sub, get
 }
 
-// -------------------- Main --------------------
+/* =======================
+   PART 3: HIGHER-ORDER
+   ======================= */
+
+func Apply(nums []int, op func(int) int) []int {
+	result := make([]int, len(nums))
+	for i, v := range nums {
+		result[i] = op(v)
+	}
+	return result
+}
+
+func Filter(nums []int, predicate func(int) bool) []int {
+	var result []int
+	for _, v := range nums {
+		if predicate(v) {
+			result = append(result, v)
+		}
+	}
+	return result
+}
+
+func Reduce(nums []int, initial int, op func(int, int) int) int {
+	acc := initial
+	for _, v := range nums {
+		acc = op(acc, v)
+	}
+	return acc
+}
+
+func Compose(f func(int) int, g func(int) int) func(int) int {
+	return func(x int) int {
+		return f(g(x))
+	}
+}
+
+/* =======================
+   PART 4: PROCESS
+   ======================= */
+
+func ExploreProcess() {
+	fmt.Println("=== Process Information ===")
+	fmt.Println("Current PID:", os.Getpid())
+	fmt.Println("Parent PID:", os.Getppid())
+
+	data := []int{1, 2, 3, 4, 5}
+	fmt.Printf("Slice address: %p\n", &data)
+	fmt.Printf("First element address: %p\n", &data[0])
+	fmt.Println("Other processes cannot access this memory due to process isolation")
+}
+
+/* =======================
+   PART 5: POINTERS
+   ======================= */
+
+func DoubleValue(x int) {
+	x = x * 2
+	// This will NOT modify the original variable because Go passes values by copy
+}
+
+func DoublePointer(x *int) {
+	*x = *x * 2
+	// This WILL modify the original variable because we use a pointer
+}
+
+func CreateOnStack() int {
+	x := 10
+	// This variable stays on the stack
+	return x
+}
+
+func CreateOnHeap() *int {
+	x := 20
+	// This variable escapes to the heap
+	return &x
+}
+
+func SwapValues(a, b int) (int, int) {
+	return b, a
+}
+
+func SwapPointers(a, b *int) {
+	*a, *b = *b, *a
+}
+
+/*
+Escape Analysis Explanation:
+- CreateOnHeap variable escapes because its address is returned
+- Escaping means Go allocates it on the heap instead of the stack
+- Stack memory is short-lived, heap memory lives longer
+*/
+
+func AnalyzeEscape() {
+	CreateOnStack()
+	CreateOnHeap()
+}
+
+/* =======================
+   PART 6: MAIN DEMO
+   ======================= */
+
 func main() {
-	// Part 1 Tests
-	fact, err := Factorial(5)
-	if err != nil {
-		fmt.Println("Factorial error:", err)
-	} else {
-		fmt.Println("Factorial 5:", fact)
-	}
+	ExploreProcess()
 
-	prime, err := IsPrime(13)
-	if err != nil {
-		fmt.Println("IsPrime error:", err)
-	} else {
-		fmt.Println("Is 13 Prime?:", prime)
-	}
+	fmt.Println("\n=== Math Operations ===")
+	f, _ := Factorial(5)
+	fmt.Println("Factorial(5):", f)
 
-	pow, err := Power(2, 3)
-	if err != nil {
-		fmt.Println("Power error:", err)
-	} else {
-		fmt.Println("2^3 =", pow)
-	}
+	p, _ := IsPrime(17)
+	fmt.Println("IsPrime(17):", p)
 
-	// Part 2: MakeCounter
-	counter1 := MakeCounter(0)
-	fmt.Println("Counter1:", counter1()) // 1
-	fmt.Println("Counter1:", counter1()) // 2
+	pw, _ := Power(2, 8)
+	fmt.Println("Power(2,8):", pw)
 
-	counter2 := MakeCounter(10)
-	fmt.Println("Counter2:", counter2()) // 11
-	fmt.Println("Counter1:", counter1()) // 3 (independent)
+	fmt.Println("\n=== Closures ===")
+	c1 := MakeCounter(0)
+	c2 := MakeCounter(100)
+	fmt.Println(c1(), c1())
+	fmt.Println(c2(), c1())
 
-	// Part 2: MakeMultiplier
-	double := MakeMultiplier(2)
-	triple := MakeMultiplier(3)
-	fmt.Println("Double 5 =", double(5)) // 10
-	fmt.Println("Triple 5 =", triple(5)) // 15
+	fmt.Println("\n=== Higher-Order ===")
+	nums := []int{1, 2, 3, 4, 5}
+	squared := Apply(nums, func(x int) int { return x * x })
+	fmt.Println("Squared:", squared)
 
-	// Part 2: MakeAccumulator
-	add, subtract, get := MakeAccumulator(100)
-	add(50)
-	fmt.Println("Accumulator =", get()) // 150
-	subtract(20)
-	fmt.Println("Accumulator =", get()) // 130
+	evens := Filter(nums, func(x int) bool { return x%2 == 0 })
+	fmt.Println("Evens:", evens)
+
+	sum := Reduce(nums, 0, func(a, b int) int { return a + b })
+	fmt.Println("Sum:", sum)
+
+	fmt.Println("\n=== Pointers ===")
+	a, b := 5, 10
+	SwapPointers(&a, &b)
+	fmt.Println("After SwapPointers:", a, b)
 }
+
